@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Media3D;
 using System.Xml;
 using PZ3.Models;
 namespace PZ3
@@ -15,6 +16,12 @@ namespace PZ3
         public static List<SwitchEntity> switches = new List<SwitchEntity>();
         public static List<NodeEntity> nodes = new List<NodeEntity>();
 
+        public const double MAX_LAT = 45.277031;
+        public const double MAX_LON = 19.894459;
+        public const double MIN_LAT = 45.2325;
+        public const double MIN_LON = 19.793909;
+        public const double divides_X = (MAX_LON - MIN_LON) / 10; //10x10 je mapa znaci imacemo 10 jednakih podeoka
+        public const double divides_Y = (MAX_LAT - MIN_LAT) / 10;
 
 
         public static void LoadAndParseXML(string location)
@@ -25,10 +32,11 @@ namespace PZ3
             XmlNodeList substationNodes = xmlDoc.SelectNodes("/NetworkModel/Substations/SubstationEntity");
             XmlNodeList switchNodes = xmlDoc.SelectNodes("/NetworkModel/Switches/SwitchEntity");
             XmlNodeList nodeNodes = xmlDoc.SelectNodes("/NetworkModel/Nodes/NodeEntity");
-            lines = createLineEntities(lineNodes);
+            
             substations = createSubstationEntities(substationNodes);
             switches = createSwitchEntities(switchNodes);
             nodes = createNodeEntities(nodeNodes);
+            lines = createLineEntities(lineNodes);
 
         }
 
@@ -39,6 +47,7 @@ namespace PZ3
             foreach (XmlNode node in lineNodes)
             {
                 LineEntity line = new LineEntity();
+                line.Vertices = new List<Point3D>();
                 line.ConductorMaterial = node.SelectSingleNode("ConductorMaterial").InnerText;
                 line.FirstEnd = long.Parse(node.SelectSingleNode("FirstEnd").InnerText);
                 line.Id = long.Parse(node.SelectSingleNode("Id").InnerText);
@@ -49,18 +58,72 @@ namespace PZ3
                 line.SecondEnd = long.Parse(node.SelectSingleNode("SecondEnd").InnerText);
                 line.ThermalConstantHeat = long.Parse(node.SelectSingleNode("ThermalConstantHeat").InnerText);
 
-                bool postoji_dupla_suprotni_smer = false;
+                bool ignore = false;
 
-                foreach (LineEntity templine in ret)
+                //modifikovacemo da i ako ona spaja neku od tacaka koje su ignorisane ne uzima se u obzir
+                
+                foreach(SwitchEntity swch in switches)
                 {
-                    if ((templine.FirstEnd == line.SecondEnd && templine.SecondEnd == line.FirstEnd) || (templine.FirstEnd == line.FirstEnd && templine.SecondEnd == line.SecondEnd))
+                    if(swch.Id == line.FirstEnd || swch.Id == line.SecondEnd)
                     {
-                        postoji_dupla_suprotni_smer = true;
+                        if(swch.X < MIN_LON || swch.X > MAX_LON || swch.Y > MAX_LAT || swch.Y < MIN_LAT)
+                        {
+                            ignore = true; //izignorisemo
+                        }
                     }
                 }
 
-                if (postoji_dupla_suprotni_smer == false)
+                foreach (NodeEntity swch in nodes)
                 {
+                    if (swch.Id == line.FirstEnd || swch.Id == line.SecondEnd)
+                    {
+                        if (swch.X < MIN_LON || swch.X > MAX_LON || swch.Y > MAX_LAT || swch.Y < MIN_LAT)
+                        {
+                            ignore = true; //izignorisemo
+                        }
+                    }
+                }
+
+                foreach (SubstationEntity swch in substations)
+                {
+                    if (swch.Id == line.FirstEnd || swch.Id == line.SecondEnd)
+                    {
+                        if (swch.X < MIN_LON || swch.X > MAX_LON || swch.Y > MAX_LAT || swch.Y < MIN_LAT)
+                        {
+                            ignore = true; //izignorisemo
+                        }
+                    }
+                }
+
+
+
+
+                /*  foreach (LineEntity templine in ret)
+                  {
+                      if ((templine.FirstEnd == line.SecondEnd && templine.SecondEnd == line.FirstEnd) || (templine.FirstEnd == line.FirstEnd && templine.SecondEnd == line.SecondEnd))
+                      {
+                          postoji_dupla_suprotni_smer = true;
+                      }
+                  }*/
+
+                if (ignore == false)
+                {
+
+                    foreach (XmlNode point in node.SelectSingleNode("Vertices"))
+                    {
+                        double x, y;
+                        ToLatLon(double.Parse(point.SelectSingleNode("X").InnerText, CultureInfo.InvariantCulture), double.Parse(point.SelectSingleNode("Y").InnerText, CultureInfo.InvariantCulture), 34, out y, out x);
+                        //bilo je linija koje su se prostirale van mape zbog vertices koje su spajale tacke koje smo izignorisali
+                        if (x < MIN_LON || x > MAX_LON || y > MAX_LAT || y < MIN_LAT)
+                        {
+                            continue;
+                        }
+                        else {
+                            line.Vertices.Add(new Point3D(x, y, 1));
+                        }
+                        
+                    }
+
                     ret.Add(line);
                 }
 
@@ -84,10 +147,22 @@ namespace PZ3
 
 
                 double noviX, noviY;
-                ToLatLon(sub.X, sub.Y, 34, out noviX, out noviY);
+                ToLatLon(sub.X, sub.Y, 34, out noviY, out noviX);
                 sub.X = noviX;
                 sub.Y = noviY;
-                ret.Add(sub);
+
+                bool ignore = false;
+
+                if (sub.X < MIN_LON || sub.X > MAX_LON || sub.Y > MAX_LAT || sub.Y < MIN_LAT)
+                {
+                    ignore = true; //izignorisemo
+                }
+
+                if(ignore == false)
+                {
+                    ret.Add(sub);
+                }
+                
 
             }
             return ret;
@@ -105,10 +180,23 @@ namespace PZ3
                 swtch.X = double.Parse(node.SelectSingleNode("X").InnerText, CultureInfo.InvariantCulture);
                 swtch.Y = double.Parse(node.SelectSingleNode("Y").InnerText, CultureInfo.InvariantCulture);
                 double noviX, noviY;
-                ToLatLon(swtch.X, swtch.Y, 34, out noviX, out noviY);
+                ToLatLon(swtch.X, swtch.Y, 34, out noviY, out noviX);
                 swtch.X = noviX;
                 swtch.Y = noviY;
-                ret.Add(swtch);
+                
+
+
+                bool ignore = false;
+
+                if (swtch.X < MIN_LON || swtch.X > MAX_LON || swtch.Y > MAX_LAT || swtch.Y < MIN_LAT)
+                {
+                    ignore = true; //izignorisemo
+                }
+
+                if (ignore == false)
+                {
+                    ret.Add(swtch);
+                }
             }
 
 
@@ -126,10 +214,22 @@ namespace PZ3
                 nEntity.X = double.Parse(node.SelectSingleNode("X").InnerText, CultureInfo.InvariantCulture);
                 nEntity.Y = double.Parse(node.SelectSingleNode("Y").InnerText, CultureInfo.InvariantCulture);
                 double noviX, noviY;
-                ToLatLon(nEntity.X, nEntity.Y, 34, out noviX, out noviY);
+                ToLatLon(nEntity.X, nEntity.Y, 34, out noviY, out noviX);
                 nEntity.X = noviX;
                 nEntity.Y = noviY;
-                ret.Add(nEntity);
+
+
+                bool ignore = false;
+
+                if (nEntity.X < MIN_LON || nEntity.X > MAX_LON || nEntity.Y > MAX_LAT || nEntity.Y < MIN_LAT)
+                {
+                    ignore = true; //izignorisemo
+                }
+
+                if (ignore == false)
+                {
+                    ret.Add(nEntity);
+                }
             }
 
 
@@ -180,6 +280,42 @@ namespace PZ3
             latitude = ((lat + (1 + e2cuadrada * Math.Pow(Math.Cos(lat), 2) - (3.0 / 2.0) * e2cuadrada * Math.Sin(lat) * Math.Cos(lat) * (tao - lat)) * (tao - lat)) * (180.0 / Math.PI)) + diflat;
         }
 
+
+        //Ne zanima me vise apsolutna LAT/LON sada moram gledati odnos na referentne minimume zadatke u zadatku
+        public static void ScaleLatLon()
+        {
+            foreach(SubstationEntity sub in substations)
+            {
+                sub.X = (sub.X - MIN_LON) / divides_X; //dobicemo broj podeoka po X-u zarez ostatak
+                sub.Y = (sub.Y - MIN_LAT) / divides_Y; //##//
+
+            }
+
+            foreach (NodeEntity sub in nodes)
+            {
+                sub.X = (sub.X - MIN_LON) / divides_X; 
+                sub.Y = (sub.Y - MIN_LAT) / divides_Y; 
+
+            }
+
+            foreach (SwitchEntity sub in switches)
+            {
+                sub.X = (sub.X - MIN_LON) / divides_X; //dobicemo broj podeoka po X-u zarez ostatak
+                sub.Y = (sub.Y - MIN_LAT) / divides_Y; //##//
+
+            }
+
+            foreach(LineEntity line in lines)
+            {
+
+                for(int i =0; i < line.Vertices.Count; i++)
+                {
+                    double newX = (line.Vertices[i].X - MIN_LON) / divides_X;
+                    double newY = (line.Vertices[i].Y - MIN_LAT) / divides_Y;
+                    line.Vertices[i] = new Point3D(newX, newY, 1);
+                }
+            }
+        }
 
     }
 

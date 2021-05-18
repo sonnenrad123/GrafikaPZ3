@@ -7,10 +7,10 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="960" Width="1280">
     <Grid Background="AliceBlue">
-        <Viewport3D x:Name="MainVP" ClipToBounds="True" MouseLeftButtonDown="MainVP_MouseLeftButtonDown" MouseLeftButtonUp="MainVP_MouseLeftButtonUp" MouseMove="MainVP_MouseMove" MouseWheel="MainVP_MouseWheel" MouseDown="MainVP_MouseDown" MouseUp="MainVP_MouseUp" >
+        <Viewport3D x:Name="MainVP" ClipToBounds="True" MouseLeftButtonDown="MainVP_MouseLeftButtonDown" MouseLeftButtonUp="MainVP_MouseLeftButtonUp" MouseMove="MainVP_MouseMove" MouseWheel="MainVP_MouseWheel" MouseDown="MainVP_MouseDown" MouseUp="MainVP_MouseUp" Margin="0,0,0,138" >
             <Viewport3D.Camera>
                 <PerspectiveCamera x:Name="PerspectiveCamera" Position = "4.8 -5 8.6" LookDirection = "0,8,-8" FieldOfView="60" >
-                    
+
                 </PerspectiveCamera>
             </Viewport3D.Camera>
             <Viewport3D.Children>
@@ -34,7 +34,7 @@
                                 </RotateTransform3D.Rotation>
                             </RotateTransform3D>
                             <TranslateTransform3D x:Name="translateT" OffsetX="0" OffsetY="0" OffsetZ="0" />
-                            
+
                         </Transform3DGroup>
                     </ModelVisual3D.Transform>
                     <ModelVisual3D.Content>
@@ -45,8 +45,8 @@
                                                     TriangleIndices="0,1,2 0,2,3" TextureCoordinates="0,1 1,1 1,0 0,0">
                                     </MeshGeometry3D>
                                 </GeometryModel3D.Geometry>
-                                
-                                
+
+
                                 <GeometryModel3D.Material>
                                     <DiffuseMaterial>
                                         <DiffuseMaterial.Brush>
@@ -54,14 +54,14 @@
                                         </DiffuseMaterial.Brush>
                                     </DiffuseMaterial>
                                 </GeometryModel3D.Material>
-                                
+
                             </GeometryModel3D>
                             <!-- Ako je ovo 3D ploca, ona bi trebala da ima pozadinu? Postavicemo i jednu u smeru kazaljke za svaki slucaj!-->
                             <GeometryModel3D>
                                 <GeometryModel3D.Geometry>
                                     <MeshGeometry3D x:Name="MapRearMesh" Positions="0,0,0 10,0,0 10,10,0 0,10,0"
                                                     TriangleIndices="2,1,0 2,0,3" TextureCoordinates="0,0 1,0 1,1 0,1">
-                                       
+
                                     </MeshGeometry3D>
                                 </GeometryModel3D.Geometry>
                                 <GeometryModel3D.Material>
@@ -77,15 +77,20 @@
 
                         </Model3DGroup>
                     </ModelVisual3D.Content>
-                    
-                    
+
+
                 </ModelVisual3D>
-                            
+
             </Viewport3D.Children>
         </Viewport3D>
-        <DockPanel Margin="0,843,0,0" >
+
+        <DockPanel Margin="0,856,0,0">
             <Canvas DockPanel.Dock="Bottom" Height="76">
-                <Label x:Name="Substation" Content="Substation - " Canvas.Left="10" Height="23" Width="78" Canvas.Top="2"/>
+
+                <Label x:Name="Substation" Content="Substation -" Canvas.Left="10" Height="23" Width="78" Canvas.Top="2"/>
+
+                <Label x:Name="label" Content="Resistance between 0 - 1:" Height="29" VerticalAlignment="Top" Canvas.Left="212" Canvas.Top="23"/>
+
                 <Label x:Name="Switch" Content="Switch - " Canvas.Left="10" Height="23" Width="68" Canvas.Top="21"/>
                 <Label x:Name="Node" Content="Node - " Canvas.Left="10" Height="23" Width="68" Canvas.Top="41"/>
                 <Ellipse Fill="Green" Height="11" Canvas.Left="81" Stroke="Black" Canvas.Top="11" Width="12" RenderTransformOrigin="0.5,0.5">
@@ -118,8 +123,17 @@
                         </TransformGroup>
                     </Ellipse.RenderTransform>
                 </Ellipse>
-                <Button x:Name="OpenFileBtn" Content="Load Xml" Canvas.Left="582" Canvas.Top="29" Width="75" Click="OpenFileBtn_Click"/>
+                <Button x:Name="OpenFileBtn" Content="Load Xml" Canvas.Left="111" Canvas.Top="29" Width="75" Click="OpenFileBtn_Click"/>
+                <Label x:Name="label_Copy" Content="Resistance between 1 - 2" Height="29" VerticalAlignment="Top" Canvas.Left="414" Canvas.Top="20"/>
+                <Label x:Name="label_Copy1" Content="Resistance greater than 2:" Height="29" VerticalAlignment="Top" Canvas.Left="624" Canvas.Top="21"/>
+                <CheckBox x:Name="ZeroOneCB" Content="" IsChecked="True"  Canvas.Left="361" Canvas.Top="29" Checked="ZeroOneCB_Checked" Unchecked="ZeroOneCB_Unchecked"/>
+                <CheckBox x:Name="OneTwoCB" IsChecked="True"  Content="" Canvas.Left="560" Canvas.Top="29" Checked="OneTwoCB_Checked" Unchecked="OneTwoCB_Unchecked"/>
+                <CheckBox x:Name="GtThreeCB" IsChecked="True"  Content="" Canvas.Left="770" Canvas.Top="29" Checked="GtThreeCB_Checked" Unchecked="GtThreeCB_Unchecked"/>
             </Canvas>
+
+
+
+
         </DockPanel>
     </Grid>
 </Window>

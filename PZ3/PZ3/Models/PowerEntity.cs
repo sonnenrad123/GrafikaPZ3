@@ -14,7 +14,7 @@ namespace PZ3.Models
         private string name;
         private double x;
         private double y;
-        private Ellipse powerEntityShape;
+        private Ellipse powerEntityShape = new Ellipse();
         
 
         public PowerEntity()
@@ -79,6 +79,11 @@ namespace PZ3.Models
         virtual public void SetElementColor()
         {
 
+        }
+
+        virtual public string printToolTip()
+        {
+            return "";
         }
 
         public void OnClick(object sender,EventArgs e)

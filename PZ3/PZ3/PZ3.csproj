@@ -70,6 +70,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ModelCreator.cs" />
     <Compile Include="Models\LineEntity.cs" />
     <Compile Include="Models\NodeEntity.cs" />
     <Compile Include="Models\PowerEntity.cs" />

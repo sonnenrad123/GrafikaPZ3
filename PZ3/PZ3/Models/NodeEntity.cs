@@ -17,5 +17,9 @@ namespace PZ3.Models
         {
             PowerEntityShape.Fill = Brushes.Blue;
         }
+        public override string printToolTip()
+        {
+            return "Type: Node entity" + Environment.NewLine + "ID: " + this.Id + Environment.NewLine + "Name: " + this.Name;
+        }
     }
 }

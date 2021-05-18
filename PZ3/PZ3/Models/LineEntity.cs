@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Media3D;
 
 namespace PZ3.Models
 {
@@ -17,6 +18,7 @@ namespace PZ3.Models
         private long thermalConstantHeat;
         private long firstEnd;
         private long secondEnd;
+        private List<Point3D> vertices;
 
         public LineEntity()
         {
@@ -140,7 +142,7 @@ namespace PZ3.Models
             }
         }
 
-        
+        public List<Point3D> Vertices { get => vertices; set => vertices = value; }
     }
 }
 

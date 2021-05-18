@@ -1,4 +1,5 @@
 ﻿using Microsoft.Win32;
+using PZ3.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
@@ -29,9 +31,15 @@ namespace PZ3
         private int zoomCurent = 1;
         bool middleMouseButtonPressed = false;
 
+        //promenjive za hittest
+        ToolTip mainToolTip = new ToolTip();
+
+        List<GeometryModel3D> allModels = new List<GeometryModel3D>();
 
         public MainWindow()
         {
+            mainToolTip.IsOpen = false;
+            mainToolTip.StaysOpen = false;
             InitializeComponent();
         }
 
@@ -45,11 +53,15 @@ namespace PZ3
             {
                 try
                 {
-                    using(new WaitCursor())
+                    using (new WaitCursor())
                     {
                         string location = openFileDialog.FileName;
                         ImportEntities.LoadAndParseXML(location);
+                        ImportEntities.ScaleLatLon();
 
+                        ModelCreator.CreateModels(modelGroup, ImportEntities.substations, ImportEntities.switches, ImportEntities.lines, ImportEntities.nodes);
+
+                        MainVP.MouseLeftButtonDown += HitTestMouseButtonDown;
                     }
                 }
                 catch (Exception exc)
@@ -91,10 +103,10 @@ namespace PZ3
                 double offsetY = end.Y - start.Y;
                 double w = this.Width;
                 double h = this.Height;
-                double translateX = (offsetX * 100 ) / w ;
-                double translateY = -(offsetY * 100 ) / h ; 
+                double translateX = (offsetX * 100) / w;
+                double translateY = -(offsetY * 100) / h;
 
-                
+
 
                 if (middleMouseButtonPressed)//da li rotiramo 
                 {
@@ -106,8 +118,8 @@ namespace PZ3
                 }
                 else
                 {
-                    translateT.OffsetX = diffOffset.X + (translateX *2 / (100 * ScaleT.ScaleX));
-                    translateT.OffsetY = diffOffset.Y + (translateY *2 / (100 * ScaleT.ScaleX));
+                    translateT.OffsetX = diffOffset.X + (translateX * 2 / (100 * ScaleT.ScaleX));
+                    translateT.OffsetY = diffOffset.Y + (translateY * 2 / (100 * ScaleT.ScaleX));
                     translateT.OffsetZ = translateT.OffsetZ;
                 }
             }
@@ -176,25 +188,197 @@ namespace PZ3
         #endregion
 
 
-    }
-    public class WaitCursor : IDisposable
-    {
-        private Cursor _previousCursor;
 
-        public WaitCursor()
+        #region HitTest
+
+
+
+
+        private void HitTestMouseButtonDown(object sender, MouseButtonEventArgs e)
         {
-            _previousCursor = Mouse.OverrideCursor;
-
-            Mouse.OverrideCursor = Cursors.Wait;
+            mainToolTip.IsOpen = false;
+            Point mouseposition = e.GetPosition(MainVP);
+            Point3D testpoint3D = new Point3D(mouseposition.X, mouseposition.Y, 0);
+            Vector3D testdirection = new Vector3D(mouseposition.X, mouseposition.Y, 10);
+            PointHitTestParameters pointparams =
+                     new PointHitTestParameters(mouseposition);
+            RayHitTestParameters rayparams =
+                     new RayHitTestParameters(testpoint3D, testdirection);
+            VisualTreeHelper.HitTest(MainVP, null, HTResult, pointparams);
         }
 
-        #region IDisposable Members
-
-        public void Dispose()
+        private HitTestResultBehavior HTResult(System.Windows.Media.HitTestResult rawresult)
         {
-            Mouse.OverrideCursor = _previousCursor;
+            RayHitTestResult rayResult = rawresult as RayHitTestResult;
+
+
+            if (rayResult != null)
+            {
+                var resultValue = rayResult.ModelHit.GetValue(FrameworkElement.TagProperty);
+                if (resultValue is LineEntity)
+                {
+                    LineEntity line = (LineEntity)resultValue;
+                    //vrati sve na default i oboji start end
+                    foreach (GeometryModel3D model in modelGroup.Children)
+                    {
+                        if(model.GetValue(FrameworkElement.TagProperty) is PowerEntity)
+                        {
+                            PowerEntity modelValue = (PowerEntity)model.GetValue(FrameworkElement.TagProperty);
+                            model.Material = new DiffuseMaterial(modelValue.PowerEntityShape.Fill);
+                            if (modelValue.Id == line.FirstEnd || modelValue.Id == line.SecondEnd)
+                            {
+                                model.Material = new DiffuseMaterial(Brushes.YellowGreen);
+                            }
+                        }
+
+                        
+                    }
+
+
+
+
+                }
+                if (resultValue is PowerEntity)
+                {
+                    mainToolTip.Content = ((PowerEntity)resultValue).printToolTip();
+                    mainToolTip.IsOpen = true;
+                }
+
+            }
+            return HitTestResultBehavior.Stop;
         }
 
         #endregion
+
+
+
+        public class WaitCursor : IDisposable
+        {
+            private Cursor _previousCursor;
+
+            public WaitCursor()
+            {
+                _previousCursor = Mouse.OverrideCursor;
+
+                Mouse.OverrideCursor = Cursors.Wait;
+            }
+
+            #region IDisposable Members
+
+            public void Dispose()
+            {
+                Mouse.OverrideCursor = _previousCursor;
+            }
+
+            #endregion
+        }
+
+        private void ZeroOneCB_Checked(object sender, RoutedEventArgs e)
+        {
+            foreach (GeometryModel3D model in modelGroup.Children)
+            {
+                if (model.GetValue(FrameworkElement.TagProperty) is LineEntity)
+                {
+                    LineEntity modelValue = (LineEntity)model.GetValue(FrameworkElement.TagProperty);
+                    
+                    if(modelValue.R >= 0 && modelValue.R <= 1)
+                    {
+                        model.Material = new DiffuseMaterial(Brushes.Goldenrod);
+                    }
+                }
+
+
+            }
+        }
+
+        private void ZeroOneCB_Unchecked(object sender, RoutedEventArgs e)
+        {
+            foreach (GeometryModel3D model in modelGroup.Children)
+            {
+                if (model.GetValue(FrameworkElement.TagProperty) is LineEntity)
+                {
+                    LineEntity modelValue = (LineEntity)model.GetValue(FrameworkElement.TagProperty);
+
+                    if (modelValue.R >= 0 && modelValue.R <= 1)
+                    {
+                        model.Material = new DiffuseMaterial(Brushes.Transparent);
+                    }
+                }
+
+
+            }
+        }
+
+        private void OneTwoCB_Checked(object sender, RoutedEventArgs e)
+        {
+            foreach (GeometryModel3D model in modelGroup.Children)
+            {
+                if (model.GetValue(FrameworkElement.TagProperty) is LineEntity)
+                {
+                    LineEntity modelValue = (LineEntity)model.GetValue(FrameworkElement.TagProperty);
+
+                    if (modelValue.R > 1 && modelValue.R <= 2)
+                    {
+                        model.Material = new DiffuseMaterial(Brushes.Goldenrod);
+                    }
+                }
+
+
+            }
+        }
+
+        private void OneTwoCB_Unchecked(object sender, RoutedEventArgs e)
+        {
+            foreach (GeometryModel3D model in modelGroup.Children)
+            {
+                if (model.GetValue(FrameworkElement.TagProperty) is LineEntity)
+                {
+                    LineEntity modelValue = (LineEntity)model.GetValue(FrameworkElement.TagProperty);
+
+                    if (modelValue.R > 1 && modelValue.R <= 2)
+                    {
+                        model.Material = new DiffuseMaterial(Brushes.Transparent);
+                    }
+                }
+
+
+            }
+        }
+
+        private void GtThreeCB_Checked(object sender, RoutedEventArgs e)
+        {
+            foreach (GeometryModel3D model in modelGroup.Children)
+            {
+                if (model.GetValue(FrameworkElement.TagProperty) is LineEntity)
+                {
+                    LineEntity modelValue = (LineEntity)model.GetValue(FrameworkElement.TagProperty);
+
+                    if (modelValue.R > 2)
+                    {
+                        model.Material = new DiffuseMaterial(Brushes.Goldenrod);
+                    }
+                }
+
+
+            }
+        }
+
+        private void GtThreeCB_Unchecked(object sender, RoutedEventArgs e)
+        {
+            foreach (GeometryModel3D model in modelGroup.Children)
+            {
+                if (model.GetValue(FrameworkElement.TagProperty) is LineEntity)
+                {
+                    LineEntity modelValue = (LineEntity)model.GetValue(FrameworkElement.TagProperty);
+
+                    if (modelValue.R > 2)
+                    {
+                        model.Material = new DiffuseMaterial(Brushes.Transparent);
+                    }
+                }
+
+
+            }
+        }
     }
 }
