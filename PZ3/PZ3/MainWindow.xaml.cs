@@ -31,6 +31,8 @@ namespace PZ3
         private int zoomCurent = 1;
         bool middleMouseButtonPressed = false;
 
+       
+
         //promenjive za hittest
         ToolTip mainToolTip = new ToolTip();
 

@@ -30,7 +30,7 @@
                             </RotateTransform3D>
                             <RotateTransform3D CenterX="5" CenterY="5">
                                 <RotateTransform3D.Rotation>
-                                    <AxisAngleRotation3D x:Name="rotateY" Axis="0,1,0" Angle="0"/>
+                                    <AxisAngleRotation3D x:Name="rotateY" Axis="0,0,1" Angle="0"/>
                                 </RotateTransform3D.Rotation>
                             </RotateTransform3D>
                             <TranslateTransform3D x:Name="translateT" OffsetX="0" OffsetY="0" OffsetZ="0" />
