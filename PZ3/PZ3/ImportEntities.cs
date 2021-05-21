@@ -54,7 +54,7 @@ namespace PZ3
                 line.IsUnderground = bool.Parse(node.SelectSingleNode("IsUnderground").InnerText);
                 line.LineType = node.SelectSingleNode("LineType").InnerText;
                 line.Name = node.SelectSingleNode("Name").InnerText;
-                line.R = float.Parse(node.SelectSingleNode("R").InnerText);
+                line.R = float.Parse(node.SelectSingleNode("R").InnerText,CultureInfo.InvariantCulture);
                 line.SecondEnd = long.Parse(node.SelectSingleNode("SecondEnd").InnerText);
                 line.ThermalConstantHeat = long.Parse(node.SelectSingleNode("ThermalConstantHeat").InnerText);
 
