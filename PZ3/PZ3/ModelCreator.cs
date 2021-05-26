@@ -99,34 +99,35 @@ namespace PZ3
             TriangleCollection.Add(6);
             TriangleCollection.Add(7);
             //leva
+            TriangleCollection.Add(3);
             TriangleCollection.Add(0);
             TriangleCollection.Add(4);
-            TriangleCollection.Add(7);
-            TriangleCollection.Add(0);
-            TriangleCollection.Add(7);
             TriangleCollection.Add(3);
+            TriangleCollection.Add(4);
+            TriangleCollection.Add(7);
             //desna
-            TriangleCollection.Add(5);
             TriangleCollection.Add(1);
             TriangleCollection.Add(2);
-            TriangleCollection.Add(5);
-            TriangleCollection.Add(2);
             TriangleCollection.Add(6);
+            TriangleCollection.Add(1);
+            TriangleCollection.Add(6);
+            TriangleCollection.Add(5);
             //zadnja
-            TriangleCollection.Add(3);
             TriangleCollection.Add(2);
-            TriangleCollection.Add(6);
             TriangleCollection.Add(3);
-            TriangleCollection.Add(6);
             TriangleCollection.Add(7);
+            TriangleCollection.Add(2);
+            TriangleCollection.Add(7);
+            TriangleCollection.Add(6);
             //prednja
-            TriangleCollection.Add(1);
             TriangleCollection.Add(0);
-            TriangleCollection.Add(4);
             TriangleCollection.Add(1);
-            TriangleCollection.Add(4);
             TriangleCollection.Add(5);
-            
+            TriangleCollection.Add(0);
+            TriangleCollection.Add(5);
+            TriangleCollection.Add(4);
+
+
 
 
 
