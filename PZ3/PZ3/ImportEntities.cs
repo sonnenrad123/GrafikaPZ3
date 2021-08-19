@@ -60,51 +60,75 @@ namespace PZ3
 
                 bool ignore = false;
 
-                //modifikovacemo da i ako ona spaja neku od tacaka koje su ignorisane ne uzima se u obzir
+                //da bi znali da liniju treba crtati treba pronaci njen pocetak i kraj tj sta povezuje, ako ne pronadjemo znaci da je van opsega i ignorisemo liniju
+                PowerEntity startEntity = null;
+                PowerEntity endEntity = null;
+                if((switches.Find(x => x.Id == line.FirstEnd)) == null)
+                {
+
+                    if ((nodes.Find(x => x.Id == line.FirstEnd)) == null)
+                    {
+                        if ((substations.Find(x => x.Id == line.FirstEnd)) == null)
+                        {
+                            ignore = true;
+                        }
+                        else
+                        {
+                            startEntity = substations.Find(x => x.Id == line.FirstEnd);
+                            startEntity.NumberOfConnections = startEntity.NumberOfConnections + 1;
+                        }
+                    }
+                    else
+                    {
+                        startEntity = nodes.Find(x => x.Id == line.FirstEnd);
+                        startEntity.NumberOfConnections = startEntity.NumberOfConnections + 1;
+                    }
+                }
+                else
+                {
+                    startEntity = switches.Find(x => x.Id == line.FirstEnd);
+                    startEntity.NumberOfConnections = startEntity.NumberOfConnections + 1;
+                    if((startEntity as SwitchEntity).Status == "Open")
+                    {
+                        line.Active = false;
+                    }
+                }
+                //ako smo pronasli pocetnu tacku tek ima smisla traziti kraj
+                if(startEntity != null)
+                {
+                    if ((switches.Find(x => x.Id == line.SecondEnd)) == null)
+                    {
+
+                        if ((nodes.Find(x => x.Id == line.SecondEnd)) == null)
+                        {
+                            if ((substations.Find(x => x.Id == line.SecondEnd)) == null)
+                            {
+                                ignore = true;
+                            }
+                            else
+                            {
+                                endEntity = substations.Find(x => x.Id == line.SecondEnd);
+                                endEntity.NumberOfConnections = endEntity.NumberOfConnections + 1;
+                            }
+                        }
+                        else
+                        {
+                            endEntity = nodes.Find(x => x.Id == line.SecondEnd);
+                            endEntity.NumberOfConnections = endEntity.NumberOfConnections + 1;
+                        }
+                    }
+                    else
+                    {
+                        endEntity = switches.Find(x => x.Id == line.SecondEnd);
+                        endEntity.NumberOfConnections = endEntity.NumberOfConnections + 1;
+                        if ((endEntity as SwitchEntity).Status == "Open")
+                        {
+                            line.Active = false;
+                        }
+                    }
+                }
+
                 
-                foreach(SwitchEntity swch in switches)
-                {
-                    if(swch.Id == line.FirstEnd || swch.Id == line.SecondEnd)
-                    {
-                        if(swch.X < MIN_LON || swch.X > MAX_LON || swch.Y > MAX_LAT || swch.Y < MIN_LAT)
-                        {
-                            ignore = true; //izignorisemo
-                        }
-                    }
-                }
-
-                foreach (NodeEntity swch in nodes)
-                {
-                    if (swch.Id == line.FirstEnd || swch.Id == line.SecondEnd)
-                    {
-                        if (swch.X < MIN_LON || swch.X > MAX_LON || swch.Y > MAX_LAT || swch.Y < MIN_LAT)
-                        {
-                            ignore = true; //izignorisemo
-                        }
-                    }
-                }
-
-                foreach (SubstationEntity swch in substations)
-                {
-                    if (swch.Id == line.FirstEnd || swch.Id == line.SecondEnd)
-                    {
-                        if (swch.X < MIN_LON || swch.X > MAX_LON || swch.Y > MAX_LAT || swch.Y < MIN_LAT)
-                        {
-                            ignore = true; //izignorisemo
-                        }
-                    }
-                }
-
-
-
-
-                /*  foreach (LineEntity templine in ret)
-                  {
-                      if ((templine.FirstEnd == line.SecondEnd && templine.SecondEnd == line.FirstEnd) || (templine.FirstEnd == line.FirstEnd && templine.SecondEnd == line.SecondEnd))
-                      {
-                          postoji_dupla_suprotni_smer = true;
-                      }
-                  }*/
 
                 if (ignore == false)
                 {
@@ -123,6 +147,18 @@ namespace PZ3
                         }
                         
                     }
+                    //u xmlu ako linija ima tacno 2 vertices to su koordinate sta ona spaja, ipak ako ima vise to su samo koordinate medjutacaka pa moramo dodati i koordinate elementa tj prve tacke linije i poslednje
+
+                    if(line.Vertices.Count > 2)
+                    {
+                        line.Vertices.Insert(0, new Point3D(startEntity.X, startEntity.Y, 1));
+                        line.Vertices.Add(new Point3D(endEntity.X, endEntity.Y, 1));
+                    }
+                   
+
+
+
+
 
                     ret.Add(line);
                 }

@@ -198,8 +198,19 @@ namespace PZ3
 
 
             mesh.TriangleIndices = TriangleCollection;
-
             GeometryModel3D ret = new GeometryModel3D(mesh, new DiffuseMaterial(Brushes.Goldenrod));
+            if (lineBelongingTo.ConductorMaterial == "Acsr")
+            {
+                ret = new GeometryModel3D(mesh, new DiffuseMaterial(Brushes.HotPink));
+            }
+            else if(lineBelongingTo.ConductorMaterial == "Steel")
+            {
+                ret = new GeometryModel3D(mesh, new DiffuseMaterial(Brushes.Aqua));
+            }
+            else
+            {
+                ret = new GeometryModel3D(mesh, new DiffuseMaterial(Brushes.DarkGoldenrod));
+            }
             ret.SetValue(FrameworkElement.TagProperty, lineBelongingTo);
             groupModels.Children.Add(ret);
 

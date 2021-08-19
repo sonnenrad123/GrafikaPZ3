@@ -20,6 +20,8 @@ namespace PZ3.Models
         private long secondEnd;
         private List<Point3D> vertices;
 
+        public bool Active = true;
+
         public LineEntity()
         {
 
