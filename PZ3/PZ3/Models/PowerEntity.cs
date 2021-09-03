@@ -16,6 +16,7 @@ namespace PZ3.Models
         private double y;
         private Ellipse powerEntityShape = new Ellipse();
         
+        public int NumberOfConnections = 0;
 
         public PowerEntity()
         {

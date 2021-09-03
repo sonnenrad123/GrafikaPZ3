@@ -31,7 +31,14 @@ namespace PZ3
         private int zoomCurent = 1;
         bool middleMouseButtonPressed = false;
 
-       
+        //filter promenjive
+        bool ResistZeroOne = true;
+        bool ResistOneTwo = true;
+        bool ResistGTTwo = true;
+        bool ConnectionsZeroThree = true;
+        bool ConnectionsThreeFive = true;
+        bool ConnectionGTFive = true;
+        bool OnlyActiveLines = false;
 
         //promenjive za hittest
         ToolTip mainToolTip = new ToolTip();
@@ -64,6 +71,7 @@ namespace PZ3
                         ModelCreator.CreateModels(modelGroup, ImportEntities.substations, ImportEntities.switches, ImportEntities.lines, ImportEntities.nodes);
 
                         MainVP.MouseLeftButtonDown += HitTestMouseButtonDown;
+                        
                     }
                 }
                 catch (Exception exc)
@@ -277,110 +285,274 @@ namespace PZ3
 
         private void ZeroOneCB_Checked(object sender, RoutedEventArgs e)
         {
-            foreach (GeometryModel3D model in modelGroup.Children)
-            {
-                if (model.GetValue(FrameworkElement.TagProperty) is LineEntity)
-                {
-                    LineEntity modelValue = (LineEntity)model.GetValue(FrameworkElement.TagProperty);
-                    
-                    if(modelValue.R >= 0 && modelValue.R <= 1)
-                    {
-                        model.Material = new DiffuseMaterial(Brushes.Goldenrod);
-                    }
-                }
-
-
-            }
+            ResistZeroOne = true;
+            DoFilterLines();
         }
 
         private void ZeroOneCB_Unchecked(object sender, RoutedEventArgs e)
         {
-            foreach (GeometryModel3D model in modelGroup.Children)
-            {
-                if (model.GetValue(FrameworkElement.TagProperty) is LineEntity)
-                {
-                    LineEntity modelValue = (LineEntity)model.GetValue(FrameworkElement.TagProperty);
-
-                    if (modelValue.R >= 0 && modelValue.R <= 1)
-                    {
-                        model.Material = new DiffuseMaterial(Brushes.Transparent);
-                    }
-                }
-
-
-            }
+            ResistZeroOne = false;
+            DoFilterLines();
         }
 
         private void OneTwoCB_Checked(object sender, RoutedEventArgs e)
         {
-            foreach (GeometryModel3D model in modelGroup.Children)
-            {
-                if (model.GetValue(FrameworkElement.TagProperty) is LineEntity)
-                {
-                    LineEntity modelValue = (LineEntity)model.GetValue(FrameworkElement.TagProperty);
-
-                    if (modelValue.R > 1 && modelValue.R <= 2)
-                    {
-                        model.Material = new DiffuseMaterial(Brushes.Goldenrod);
-                    }
-                }
-
-
-            }
+            ResistOneTwo = true;
+            DoFilterLines();
         }
 
         private void OneTwoCB_Unchecked(object sender, RoutedEventArgs e)
         {
-            foreach (GeometryModel3D model in modelGroup.Children)
-            {
-                if (model.GetValue(FrameworkElement.TagProperty) is LineEntity)
-                {
-                    LineEntity modelValue = (LineEntity)model.GetValue(FrameworkElement.TagProperty);
-
-                    if (modelValue.R > 1 && modelValue.R <= 2)
-                    {
-                        model.Material = new DiffuseMaterial(Brushes.Transparent);
-                    }
-                }
-
-
-            }
+            ResistOneTwo = false;
+            DoFilterLines();
         }
 
         private void GtThreeCB_Checked(object sender, RoutedEventArgs e)
         {
-            foreach (GeometryModel3D model in modelGroup.Children)
-            {
-                if (model.GetValue(FrameworkElement.TagProperty) is LineEntity)
-                {
-                    LineEntity modelValue = (LineEntity)model.GetValue(FrameworkElement.TagProperty);
-
-                    if (modelValue.R > 2)
-                    {
-                        model.Material = new DiffuseMaterial(Brushes.Goldenrod);
-                    }
-                }
-
-
-            }
+            ResistGTTwo = true;
+            DoFilterLines();
         }
 
         private void GtThreeCB_Unchecked(object sender, RoutedEventArgs e)
         {
+            ResistGTTwo = false;
+            DoFilterLines();
+        }
+
+        private void ZeroThreeCB_Checked(object sender, RoutedEventArgs e)
+        {
+            ConnectionsZeroThree = true;
+            DoFilterNodes();
+         
+        }
+
+        private void ThreeFiveCB_Checked(object sender, RoutedEventArgs e)
+        {
+            ConnectionsThreeFive = true;
+            DoFilterNodes();
+        }
+
+        private void GTFiveCB_Checked(object sender, RoutedEventArgs e)
+        {
+            ConnectionGTFive = true;
+            DoFilterNodes();
+        }
+
+        private void ActiveLinesCB_Checked(object sender, RoutedEventArgs e)
+        {
+            OnlyActiveLines = true;
+            DoFilterLines();
+        }
+
+        private void ZeroThreeCB_Unchecked(object sender, RoutedEventArgs e)
+        {
+            ConnectionsZeroThree = false;
+            DoFilterNodes();
+        }
+
+        private void ThreeFiveCB_Unchecked(object sender, RoutedEventArgs e)
+        {
+            ConnectionsThreeFive = false;
+            DoFilterNodes();
+        }
+
+        private void GTFiveCB_Unchecked(object sender, RoutedEventArgs e)
+        {
+            ConnectionGTFive = false;
+            DoFilterNodes();
+        }
+
+        private void ActiveLinesCB_Unchecked(object sender, RoutedEventArgs e)
+        {
+            OnlyActiveLines = false;
+            DoFilterLines();
+        }
+
+        private void DoFilterLines()
+        {
+            //prikazemo sve onda izbacimo sta treba
             foreach (GeometryModel3D model in modelGroup.Children)
             {
                 if (model.GetValue(FrameworkElement.TagProperty) is LineEntity)
                 {
                     LineEntity modelValue = (LineEntity)model.GetValue(FrameworkElement.TagProperty);
 
-                    if (modelValue.R > 2)
+                    if (modelValue.ConductorMaterial == "Acsr")
                     {
-                        model.Material = new DiffuseMaterial(Brushes.Transparent);
+                        model.Material = new DiffuseMaterial(Brushes.HotPink);
+                    }
+                    else if (modelValue.ConductorMaterial == "Steel")
+                    {
+                        model.Material = new DiffuseMaterial(Brushes.Aqua);
+                    }
+                    else
+                    {
+                        model.Material = new DiffuseMaterial(Brushes.DarkGoldenrod);
                     }
                 }
 
 
             }
+            //samo aktivne linije?
+            if (OnlyActiveLines == true)
+            {
+                foreach (GeometryModel3D model in modelGroup.Children)
+                {
+                    if (model.GetValue(FrameworkElement.TagProperty) is LineEntity)
+                    {
+                        LineEntity modelValue = (LineEntity)model.GetValue(FrameworkElement.TagProperty);
+
+                        if (modelValue.Active == false)
+                        {
+                            model.Material = new DiffuseMaterial(Brushes.Transparent);
+                        }
+                    }
+
+
+                }
+            }
+            //iskljucimo nezeljene otpornosti
+            if (ResistZeroOne == false)
+            {
+                foreach (GeometryModel3D model in modelGroup.Children)
+                {
+                    if (model.GetValue(FrameworkElement.TagProperty) is LineEntity)
+                    {
+                        LineEntity modelValue = (LineEntity)model.GetValue(FrameworkElement.TagProperty);
+
+                        if (modelValue.R >= 0 && modelValue.R <= 1)
+                        {
+                            model.Material = new DiffuseMaterial(Brushes.Transparent);
+                        }
+                    }
+
+
+                }
+            }
+            if(ResistOneTwo == false)
+            {
+                foreach (GeometryModel3D model in modelGroup.Children)
+                {
+                    if (model.GetValue(FrameworkElement.TagProperty) is LineEntity)
+                    {
+                        LineEntity modelValue = (LineEntity)model.GetValue(FrameworkElement.TagProperty);
+
+                        if (modelValue.R > 1 && modelValue.R <= 2)
+                        {
+                            model.Material = new DiffuseMaterial(Brushes.Transparent);
+                        }
+                    }
+
+
+                }
+            }
+            if(ResistGTTwo == false)
+            {
+                foreach (GeometryModel3D model in modelGroup.Children)
+                {
+                    if (model.GetValue(FrameworkElement.TagProperty) is LineEntity)
+                    {
+                        LineEntity modelValue = (LineEntity)model.GetValue(FrameworkElement.TagProperty);
+
+                        if (modelValue.R > 2)
+                        {
+                            model.Material = new DiffuseMaterial(Brushes.Transparent);
+                        }
+                    }
+
+
+                }
+            }
+
+        }
+
+        private void DoFilterNodes()
+        {
+            //prikazemo sve onda izbacimo sta treba
+            foreach (GeometryModel3D model in modelGroup.Children)
+            {
+                if (model.GetValue(FrameworkElement.TagProperty) is  SubstationEntity)
+                {
+                    model.Material = new DiffuseMaterial(Brushes.Green);
+                }
+                else if(model.GetValue(FrameworkElement.TagProperty) is SwitchEntity)
+                {
+
+                    model.Material = new DiffuseMaterial(Brushes.Red);
+                }
+                else if(model.GetValue(FrameworkElement.TagProperty) is NodeEntity)
+                {
+                    model.Material = new DiffuseMaterial(Brushes.Blue);
+                }
+
+            }
+
+            if(ConnectionsZeroThree == false)
+            {
+                foreach (GeometryModel3D model in modelGroup.Children)
+                {
+                    if (model.GetValue(FrameworkElement.TagProperty) is LineEntity) //iskuliramo
+                    {
+                        
+                    }
+                    else
+                    {
+                        if(model.GetValue(FrameworkElement.TagProperty) != null)
+                        {
+                            PowerEntity modelValue = (PowerEntity)model.GetValue(FrameworkElement.TagProperty);
+                            if (modelValue.NumberOfConnections >= 0 && modelValue.NumberOfConnections < 3)
+                            {
+                                model.Material = new DiffuseMaterial(Brushes.Transparent);
+                            }
+                        }
+                        
+                    }
+
+
+                }
+            }
+            if(ConnectionsThreeFive == false)
+            {
+                foreach (GeometryModel3D model in modelGroup.Children)
+                {
+                    if (model.GetValue(FrameworkElement.TagProperty) is LineEntity) //iskuliramo
+                    {
+
+                    }
+                    else
+                    {
+                        if (model.GetValue(FrameworkElement.TagProperty) != null)
+                        {
+                            PowerEntity modelValue = (PowerEntity)model.GetValue(FrameworkElement.TagProperty);
+                            if (modelValue.NumberOfConnections >= 3 && modelValue.NumberOfConnections <= 5)
+                            {
+                                model.Material = new DiffuseMaterial(Brushes.Transparent);
+                            }
+                        }
+                    }
+                }
+            }
+            if (ConnectionGTFive == false) {
+                foreach (GeometryModel3D model in modelGroup.Children)
+                {
+                    if (model.GetValue(FrameworkElement.TagProperty) is LineEntity) //iskuliramo
+                    {
+
+                    }
+                    else
+                    {
+                        if (model.GetValue(FrameworkElement.TagProperty) != null)
+                        {
+                            PowerEntity modelValue = (PowerEntity)model.GetValue(FrameworkElement.TagProperty);
+                            if (modelValue.NumberOfConnections > 5)
+                            {
+                                model.Material = new DiffuseMaterial(Brushes.Transparent);
+                            }
+                        }
+                    }
+                }
+            }
+
         }
     }
 }
